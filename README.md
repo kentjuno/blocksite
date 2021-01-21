@@ -1,6 +1,6 @@
-# SiteBlocker extension for Google Chrome
-An open source, site blocking/filtering extension for Google Chrome. Version 0.3.
-
+# SiteBlocker extension for Google Chrome Vietnam version
+An open source, site blocking/filtering extension for Google Chrome. Version 0.1.
+Copy from English version with some fix: https://github.com/SuperJarek/Site-Blocker-for-chrome
 ## How to install?
 - Download the full directory
 - Go to chrome://extensions/ in your browser
