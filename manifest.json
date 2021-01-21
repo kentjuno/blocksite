@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+
+  "name": "Chặn website lừa đảo",
+  "description": "Đây là Extension giúp mọi người chặn những site không mong muốn",
+  "version": "0.1",
+  "options_page": "options.html",
+  
+  "background": {
+    "scripts": ["background.js", "toggling.js"],
+	"persistent": false
+  },
+  "icons": {
+    "16": "img/icon.png",
+    "32": "img/icon.png",
+    "128": "img/icon.png"},
+  "browser_action": {
+	"default_icon": "img/icon.png"
+  },
+  "permissions": [
+    "storage",
+	"tabs",
+	"contextMenus"
+   ]
+}
