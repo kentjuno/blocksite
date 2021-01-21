@@ -27,7 +27,7 @@ chrome.runtime.onInstalled.addListener(function initialization(){
 });
 
 function addDefaultFilters(){
-	var blockedSites = ["www.weebly.com"];
+	var blockedSites = [".weebly.com"];
 	chrome.storage.sync.set({'blockedSites': blockedSites}, function() {
 		console.log('Default blocked sites have been loaded.');
 	});
@@ -122,27 +122,27 @@ function runPageThroughFilter(tab){
 
 chrome.contextMenus.create({
 	  id: "baFilterListMenu",
-      title: "Show filter list",
+      title: "Mở list đã được chặn",
       contexts: ["browser_action"]
 }, () => chrome.runtime.lastError);
 
 chrome.contextMenus.create({
 	  id: "baAddToFilterList",
-      title: "Block this:",
+      title: "Chọn Chặn:",
       contexts: ["browser_action"]
 }, () => chrome.runtime.lastError);
 
 chrome.contextMenus.create({
 	  parentId: "baAddToFilterList",
 	  id: "baAddSiteToFilterList",
-      title: "Page",
+      title: "chặn trang này",
       contexts: ["browser_action"]
 }, () => chrome.runtime.lastError);
 
 chrome.contextMenus.create({
 	  parentId: "baAddToFilterList",
 	  id: "baAddDomainToFilterList",
-      title: "Domain",
+      title: "chặn cả website này",
       contexts: ["browser_action"]
 }, () => chrome.runtime.lastError);
 
@@ -191,12 +191,75 @@ chrome.contextMenus.onClicked.addListener(function contextMenuHandler(info, tab)
 			case "pgAddDomainToFilterList":
 				chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 					let urls = tabs.map(x => x.url);
-					var domain = urls[0].match(/^[\w]+:\/{2}([\w\.:-]+)/)[1];
+					urls = urls.toString();
+					console.log('urls: '+ urls);
+					//alert('urls: '+ urls);
+					//var domain = urls[0].match(/^[\w]+:\/{2}([\w\.:-]+)/)[1];
+					var domain = getUrlParts(urls).domainroot;
+					//^www\.(.*)\.com$
+					console.log('domain: '+ domain);
+					//alert('domain: '+ domain);
 					addUrlToBlockedSites(domain, tab);
 				});
 				break;
 		}
 });
+
+function getUrlParts(fullyQualifiedUrl) {
+    var url = {},
+        tempProtocol
+    var a = document.createElement('a')
+    // if doesn't start with something like https:// it's not a url, but try to work around that
+    if (fullyQualifiedUrl.indexOf('://') == -1) {
+        tempProtocol = 'https://'
+        a.href = tempProtocol + fullyQualifiedUrl
+    } else
+        a.href = fullyQualifiedUrl
+    var parts = a.hostname.split('.')
+    url.origin = tempProtocol ? "" : a.origin
+    url.domain = a.hostname
+    url.subdomain = parts[0]
+    url.domainroot = ''
+    url.domainpath = ''
+    url.tld = '.' + parts[parts.length - 1]
+    url.path = a.pathname.substring(1)
+    url.query = a.search.substr(1)
+    url.protocol = tempProtocol ? "" : a.protocol.substr(0, a.protocol.length - 1)
+    url.port = tempProtocol ? "" : a.port ? a.port : a.protocol === 'http:' ? 80 : a.protocol === 'https:' ? 443 : a.port
+    url.parts = parts
+    url.segments = a.pathname === '/' ? [] : a.pathname.split('/').slice(1)
+    url.params = url.query === '' ? [] : url.query.split('&')
+    for (var j = 0; j < url.params.length; j++) {
+        var param = url.params[j];
+        var keyval = param.split('=')
+        url.params[j] = {
+            'key': keyval[0],
+            'val': keyval[1]
+        }
+    }
+    // domainroot
+    if (parts.length > 2) {
+        url.domainroot = parts[parts.length - 2] + '.' + parts[parts.length - 1];
+        // check for country code top level domain
+        if (parts[parts.length - 1].length == 2 && parts[parts.length - 1].length == 2)
+            url.domainroot = parts[parts.length - 3] + '.' + url.domainroot;
+    }
+    // domainpath (domain+path without filenames) 
+    if (url.segments.length > 0) {
+        var lastSegment = url.segments[url.segments.length - 1]
+        var endsWithFile = lastSegment.indexOf('.') != -1
+        if (endsWithFile) {
+            var fileSegment = url.path.indexOf(lastSegment)
+            var pathNoFile = url.path.substr(0, fileSegment - 1)
+            url.domainpath = url.domain
+            if (pathNoFile)
+                url.domainpath = url.domainpath + '/' + pathNoFile
+        } else
+            url.domainpath = url.domain + '/' + url.path
+    } else
+        url.domainpath = url.domain
+    return url
+}
 
 function addUrlToBlockedSites(url, tab){
 	chrome.storage.sync.get('blockedSites', function (data){

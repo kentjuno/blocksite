@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "Chặn website lừa đảo",
+  "name": "Chặn website",
   "description": "Đây là Extension giúp mọi người chặn những site không mong muốn",
-  "version": "0.1",
+  "version": "0.2",
   "options_page": "options.html",
   
   "background": {
